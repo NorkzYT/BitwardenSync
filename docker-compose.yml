@@ -1,0 +1,21 @@
+services:
+  bitwardensync:
+    image: norkz/bitwardensync:1.0.0
+    container_name: bitwardensync
+    hostname: bitwardensync
+    environment:
+      - BITWARDEN_SYNC_HOST=${BITWARDEN_SYNC_HOST:?error}
+      - BITWARDEN_SYNC_BW_PASSWORD=${BITWARDEN_SYNC_BW_PASSWORD:?error}
+      - BITWARDEN_SYNC_BW_CLIENTID=${BITWARDEN_SYNC_BW_CLIENTID:?error}
+      - BITWARDEN_SYNC_BW_CLIENTSECRET=${BITWARDEN_SYNC_BW_CLIENTSECRET:?error}
+    volumes:
+      - /opt/appdata/backuponepass/data/docker/data:/bitwardensync/data # Password Manager Data Input
+      - /opt/appdata/backuponepass/data/docker/config:/root/.config/Bitwarden CLI # Where data.json file is created.
+    restart: on-failure
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    driver: bridge
+    external: true
