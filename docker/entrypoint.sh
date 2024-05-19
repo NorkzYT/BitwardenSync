@@ -30,38 +30,13 @@ sleep 1
 
 echo "--------------------------------"
 
-# Function to delete items or folders sequentially
-delete_object() {
-    if ! bw delete "$1" "$2" --session "$session_key"; then
-        echo "Failed to delete $1: $2"
-    else
-        echo "Deleted $1: $2"
-    fi
-}
+npx ts-node /backuponepass/vaultPurge.ts
 
-# Retrieve all folder IDs to delete
-folder_ids=$(bw list folders --session "$session_key" | jq -r '.[] | .id')
-if [ -z "$folder_ids" ]; then
-    echo "No folders found to delete."
-else
-    # Deleting folders sequentially
-    for id in $folder_ids; do
-        delete_object folder "$id"
-    done
-    echo "Deleted all folders from the Bitwarden vault."
-fi
-
-# Retrieve all item IDs to delete
-item_ids=$(bw list items --session "$session_key" | jq -r '.[] | .id')
-if [ -z "$item_ids" ]; then
-    echo "No items found to delete."
-else
-    # Deleting items sequentially
-    for id in $item_ids; do
-        delete_object item "$id"
-    done
-    echo "Deleted all items from the Bitwarden vault."
-fi
+# Sync Bitwarden data to CLI
+echo ""
+echo "Synchronizing Bitwarden data."
+bw sync
+echo ""
 
 echo "--------------------------------"
 

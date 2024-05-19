@@ -20,11 +20,18 @@
 	"devDependencies": {
 		"@commitlint/cli": "^19.0.0",
 		"@commitlint/config-conventional": "^19.0.0",
+		"@types/node": "^20.12.12",
 		"husky": "^9.0.0",
-		"opencommit": "^3.0.4"	
+		"opencommit": "^3.0.4"
 	},
 	"engines": {
 		"npm": ">=7.10.0",
 		"node": ">=16.0.0"
+	},
+	"dependencies": {
+		"@bitwarden/cli": "^2024.4.1",
+		"dotenv": "^16.4.5",
+		"otplib": "^12.0.1",
+		"puppeteer": "^22.9.0"
 	}
 }

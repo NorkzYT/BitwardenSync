@@ -18,9 +18,12 @@ RUN apt-get update && apt-get install -y \
     rsync \
     jq \
     nodejs \
-    npm && \
-    npm install -g @bitwarden/cli && \
-    apt-get clean && \
+    npm &&
+    apt-get clean &&
     rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and install npm packages
+COPY package.json /backuponepass/package.json
+RUN cd /backuponepass && npm install
 
 ENTRYPOINT ["/backuponepass/entrypoint.sh"]
