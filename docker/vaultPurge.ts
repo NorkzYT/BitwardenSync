@@ -90,21 +90,36 @@ dotenv.config();
     await page.goto(settingsUrl, { waitUntil: "networkidle2", timeout: 60000 });
     console.log("Navigated to settings page.");
 
-    // Wait for the "Purge Vault" button to be in the viewport and click it
-    await page.waitForSelector('button[type="button"]', {
-      visible: true,
-      timeout: 60000,
-    });
-    await page.evaluate(() => {
-      const purgeButton = Array.from(document.querySelectorAll("button")).find(
-        (button) => button.textContent?.includes("Purge vault")
-      );
-      if (purgeButton) {
-        purgeButton.scrollIntoView();
-        (purgeButton as HTMLElement).click();
+    try {
+      const buttonClicked: boolean = await page.evaluate(() => {
+        const findPurgeButton = (): HTMLButtonElement | undefined => {
+          const buttons = Array.from(
+            document.querySelectorAll("button[type='button']")
+          );
+          return buttons.find((button) =>
+            button.textContent?.trim().includes("Purge vault")
+          ) as HTMLButtonElement | undefined;
+        };
+
+        const purgeButton = findPurgeButton();
+
+        if (purgeButton) {
+          purgeButton.scrollIntoView();
+          (purgeButton as HTMLElement).click();
+          return true;
+        } else {
+          return false;
+        }
+      });
+
+      if (buttonClicked) {
+        console.log('Clicked the "Purge vault" button.');
+      } else {
+        throw new Error("Purge vault button not found.");
       }
-    });
-    console.log('Clicked the "Purge vault" button.');
+    } catch (error) {
+      console.error(`An error occurred: ${error}`);
+    }
 
     // Wait for 2 seconds before typing the password
     await new Promise((resolve) => setTimeout(resolve, 2000));

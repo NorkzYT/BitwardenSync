@@ -48,7 +48,7 @@ jobs:
           labels: |
             maintainer=NorkzYT
             org.opencontainers.image.title=BitwardenSync
-            org.opencontainers.image.description=Automatically Sync your Password Managers Data to Bitwarden.
+            org.opencontainers.image.description=Automatically Sync your Password Managers Data to Bitwarden/Vaultwarden.
             org.opencontainers.image.documentation=https://github.com/NorkzYT/BitwardenSync
             org.opencontainers.image.authors=Richard Lora
             org.opencontainers.image.licenses=GPL-3.0

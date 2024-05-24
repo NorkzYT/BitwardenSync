@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Logging start of script
-echo "Starting Bitwarden setup and synchronization script."
+echo "Starting BitwardenSync tool."
 
 echo "--------------------------------"
 
@@ -9,11 +9,11 @@ npx ts-node /backuponepass/vaultPurge.ts
 
 echo "--------------------------------"
 
-# Wait 1 second
+# Wait 1 seconds
 sleep 1
 
 # Connect the CLI to the Bitwarden server using an environment variable
-echo "Setting Bitwarden server configuration to $BITWARDEN_SYNC_HOST."
+echo "Setting server configuration to $BITWARDEN_SYNC_HOST."
 bw config server "$BITWARDEN_SYNC_HOST"
 
 # Set the client ID and client secret as environment variables

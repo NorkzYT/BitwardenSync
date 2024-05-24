@@ -2,7 +2,7 @@
     <img src="docs/content/assets/img/bitwardensync-cover-rl.png" width="490">
 </p>
 
-<p align="center">Automatically Sync your Password Managers Data to Vaultwarden</p>
+<p align="center">Automatically Sync your Password Managers Data to Bitwarden/Vaultwarden</p>
 <div align="center">
   <!-- Contributions Welcome Badge -->
   <a href="CODE_OF_CONDUCT.md" target="_blank">
@@ -29,7 +29,7 @@
 
 ## About
 
-BitwardenSync is a docker service that will automatically Sync your Password Managers Data to your Bitwarden Instance. 
+BitwardenSync is a docker service that will automatically Sync your Password Managers Data to your Bitwarden/Vaultwarden Instance. 
 
 ## Getting Started
 
