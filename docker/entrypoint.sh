@@ -3,6 +3,15 @@
 # Logging start of script
 echo "Starting Bitwarden setup and synchronization script."
 
+echo "--------------------------------"
+
+npx ts-node /backuponepass/vaultPurge.ts
+
+echo "--------------------------------"
+
+# Wait 1 second
+sleep 1
+
 # Connect the CLI to the Bitwarden server using an environment variable
 echo "Setting Bitwarden server configuration to $BITWARDEN_SYNC_HOST."
 bw config server "$BITWARDEN_SYNC_HOST"
@@ -25,21 +34,6 @@ session_key=$(bw unlock --raw --passwordenv BITWARDEN_SYNC_BW_PASSWORD)
 echo ""
 echo "Unlocked Bitwarden vault."
 
-# Wait 1 second
-sleep 1
-
-echo "--------------------------------"
-
-npx ts-node /backuponepass/vaultPurge.ts
-
-# Sync Bitwarden data to CLI
-echo ""
-echo "Synchronizing Bitwarden data."
-bw sync
-echo ""
-
-echo "--------------------------------"
-
 # Find all .1pux files in the specified directory
 pux_files=$(find /bitwardensync/data -type f -name "*.1pux" | head -n 1)
 
@@ -51,8 +45,8 @@ if [ -n "$pux_files" ]; then
         bw import 1password1pux "$file" --session "$session_key"
         # Remove the file after import to avoid re-importing
         echo ""
-        echo "Removing $file after import."
-        rm -f "$file"
+        # echo "Removing $file after import."
+        # rm -f "$file"
     done
 else
     echo "No .1pux files found."

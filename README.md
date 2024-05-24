@@ -2,7 +2,7 @@
     <img src="docs/content/assets/img/bitwardensync-cover-rl.png" width="490">
 </p>
 
-<p align="center">Automatically Sync your Password Managers Data to Bitwarden</p>
+<p align="center">Automatically Sync your Password Managers Data to Vaultwarden</p>
 <div align="center">
   <!-- Contributions Welcome Badge -->
   <a href="CODE_OF_CONDUCT.md" target="_blank">

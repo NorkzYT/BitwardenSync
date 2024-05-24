@@ -1,11 +1,16 @@
-import puppeteer from 'puppeteer';
-import * as dotenv from 'dotenv';
-import { authenticator } from 'otplib';
+import puppeteer from "puppeteer";
+import * as dotenv from "dotenv";
+import { authenticator } from "otplib";
+import { join } from "path";
+import { writeFileSync } from "fs";
 
 dotenv.config();
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox"],
+  });
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
   const bitwardenUrl = process.env.BITWARDEN_SYNC_HOST as string;
@@ -16,100 +21,135 @@ dotenv.config();
 
   if (!bitwardenUrl || !email || !password || !otpSecret) {
     console.error(
-      'Host, email, password, or OTP secret environment variables are not set'
+      "Host, email, password, or OTP secret environment variables are not set"
     );
     process.exit(1);
   }
 
   try {
-    await page.goto(bitwardenUrl, { waitUntil: 'networkidle2' });
+    await page.goto(bitwardenUrl, {
+      waitUntil: "networkidle2",
+      timeout: 60000,
+    });
+
+    console.log("Page loaded.");
 
     // Type in email
-    await page.click('input#email');
+    await page.click("input#login_input_email");
     await page.keyboard.type(email, { delay: 10 });
+    console.log("Email entered.");
+
+    // Click the Continue button
+    await page.evaluate(() => {
+      const continueButton = Array.from(
+        document.querySelectorAll("button")
+      ).find((button) => button.textContent?.includes("Continue"));
+      if (continueButton) {
+        (continueButton as HTMLElement).click();
+      }
+    });
+    console.log("Clicked Continue button after email.");
 
     // Type in password
-    await page.click('input#masterPassword');
+    await page.click("input#login_input_master-password");
     await page.keyboard.type(password, { delay: 10 });
+    console.log("Password entered.");
 
     // Click Log In button
-    await page.click('button.btn-submit');
+    await page.click('button[type="submit"]');
+    console.log("Clicked Log In button.");
 
     // Wait for navigation
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+    await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 });
+    console.log("Navigation after Log In.");
 
     // Handle potential 2FA step
-    const twoFactorInputSelector = 'input#code';
-    const twoFactorContinueSelector = 'button.btn-submit';
+    const twoFactorInputSelector = "input#code";
 
     if (await page.$(twoFactorInputSelector)) {
-      console.log('Two-factor authentication step detected');
+      console.log("Two-factor authentication step detected");
 
       // Generate OTP code
       const otpCode = authenticator.generate(otpSecret);
 
       await page.click(twoFactorInputSelector);
       await page.keyboard.type(otpCode, { delay: 10 });
-      await page.click(twoFactorContinueSelector);
+      console.log("OTP code entered.");
 
-      // Wait for navigation
-      await page.waitForNavigation({ waitUntil: 'networkidle2' });
+      // Ensure the OTP input field loses focus
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+      console.log("Navigation after clicking Continue.");
     }
 
-    // Click on Settings
-    await page.click('a[href="#/settings"]');
+    console.log("Logged in successfully.");
 
-    // Wait for the card-body containing the "Purge Vault" button
-    await page.waitForSelector('.card-body', { visible: true });
-
-    // Scroll all the way down
-    await page.evaluate(() => {
-      window.scrollTo(0, document.body.scrollHeight);
-    });
-
-    console.log('Scrolled to the bottom of the page.');
+    // Navigate to settings page directly
+    const settingsUrl = `${bitwardenUrl}/#/settings`;
+    await page.goto(settingsUrl, { waitUntil: "networkidle2", timeout: 60000 });
+    console.log("Navigated to settings page.");
 
     // Wait for the "Purge Vault" button to be in the viewport and click it
-    await page.waitForSelector('button.btn-outline-danger', { visible: true });
+    await page.waitForSelector('button[type="button"]', {
+      visible: true,
+      timeout: 60000,
+    });
     await page.evaluate(() => {
-      const purgeButton = Array.from(document.querySelectorAll('button')).find(
-        (button) => button.textContent?.includes('Purge Vault')
+      const purgeButton = Array.from(document.querySelectorAll("button")).find(
+        (button) => button.textContent?.includes("Purge vault")
       );
       if (purgeButton) {
         purgeButton.scrollIntoView();
-        purgeButton.click();
+        (purgeButton as HTMLElement).click();
       }
     });
-
-    console.log('Clicked the "Purge Vault" button.');
+    console.log('Clicked the "Purge vault" button.');
 
     // Wait for 2 seconds before typing the password
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Start typing the password directly
     await page.keyboard.type(password, { delay: 10 });
-    console.log('Typed the master password for confirmation.');
+    console.log("Typed the master password for confirmation.");
 
     // Click the final Purge Vault confirmation button
     await page.waitForSelector(
-      'form .modal-footer .btn.btn-danger.btn-submit',
-      { visible: true }
+      "form .modal-footer .btn.btn-danger.btn-submit",
+      { visible: true, timeout: 60000 }
     );
     await page.evaluate(() => {
       const confirmPurgeButton = document.querySelector(
-        'form .modal-footer .btn.btn-danger.btn-submit'
+        "form .modal-footer .btn.btn-danger.btn-submit"
       );
       if (confirmPurgeButton) {
         (confirmPurgeButton as HTMLElement).click();
       }
     });
-
-    console.log('Clicked the final "Purge Vault" confirmation button.');
+    console.log('Clicked the final "Purge vault" confirmation button.');
 
     // Wait for the purge to complete
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 });
+    await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 });
+    console.log("Purge completed successfully.");
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error("An error occurred:", error);
+
+    // Take a screenshot if an error occurs
+    const screenshotPath = join("/bitwardensync/data", "error_screenshot.png");
+    await page.screenshot({ path: screenshotPath });
+    console.log(`Screenshot saved at ${screenshotPath}`);
+
+    // Save the error message to a file
+    const errorMessagePath = join("/bitwardensync/data", "error_message.txt");
+
+    // Check the type of error and handle accordingly
+    if (error instanceof Error) {
+      writeFileSync(errorMessagePath, error.message);
+    } else {
+      writeFileSync(errorMessagePath, "An unknown error occurred.");
+    }
+
+    console.log(`Error message saved at ${errorMessagePath}`);
   } finally {
     // Close the browser
     await browser.close();
