@@ -5,7 +5,7 @@
 	"author": "NorkzYT",
 	"private": false,
 	"scripts": {
-		"clean:install": "rm -rf node_modules/ && rm -rf bun.lockb && bun i",
+		"clean:install": "rm -rf node_modules/ && rm -rf package-lock.json && npm i",
 		"prettier:check": "prettier --check .",
 		"prettier:format": "prettier --write .",
 		"repoTree": "python3 repoTree.py",

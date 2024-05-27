@@ -10,6 +10,7 @@ services:
       - BITWARDEN_SYNC_BW_PASSWORD=${BITWARDEN_SYNC_BW_PASSWORD:?error}
       - BITWARDEN_SYNC_BW_CLIENTID=${BITWARDEN_SYNC_BW_CLIENTID:?error}
       - BITWARDEN_SYNC_BW_CLIENTSECRET=${BITWARDEN_SYNC_BW_CLIENTSECRET:?error}
+      - BITWARDEN_SYNC_IMPORT_FORMAT=${BITWARDEN_SYNC_IMPORT_FORMAT:?error}
       - BITWARDEN_SYNC_BW_OTP_CODE=${BITWARDEN_SYNC_BW_OTP_CODE:?error} # Optional
     volumes:
       - ./docker/data:/bitwardensync/data # Password Manager Data Input
