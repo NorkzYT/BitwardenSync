@@ -36,7 +36,7 @@ BitwardenSync is a docker service that will automatically Sync your Password Man
 
 1. Start by duplicating the `.env.example` file, renaming the duplicate to `.env`. Fill in the required fields within `.env`.
 
-- Supported import formats: https://github.com/bitwarden/clients/blob/34a766f346d829a15e348038a12c0c1aefb17457/libs/importer/src/models/import-options.ts#L6
+- Supported [import formats](https://github.com/bitwarden/clients/blob/34a766f346d829a15e348038a12c0c1aefb17457/libs/importer/src/models/import-options.ts#L6).
 
 2. Proceed to craft your `docker-compose.yml` file, tailoring it to your environment.
 
