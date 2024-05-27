@@ -49,7 +49,7 @@ sleep 1
 
 echo "--------------------------------"
 
-npx ts-node /backuponepass/vaultPurge.ts
+npx ts-node /bitwardensync/vaultPurge.ts
 
 echo "--------------------------------"
 

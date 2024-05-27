@@ -32,18 +32,18 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
 
 # Copy necessary files
-COPY docker/entrypoint.sh /backuponepass/entrypoint.sh
-COPY docker/vaultPurge.ts /backuponepass/vaultPurge.ts
-COPY package.json /backuponepass/package.json
-COPY tsconfig.json /backuponepass/tsconfig.json
+COPY docker/entrypoint.sh /bitwardensync/entrypoint.sh
+COPY docker/vaultPurge.ts /bitwardensync/vaultPurge.ts
+COPY package.json /bitwardensync/package.json
+COPY tsconfig.json /bitwardensync/tsconfig.json
 
 # Ensure the script contains execute permissions
-RUN chmod +x /backuponepass/entrypoint.sh
+RUN chmod +x /bitwardensync/entrypoint.sh
 
 # Set working directory
-WORKDIR /backuponepass
+WORKDIR /bitwardensync
 
 # Install npm packages
 RUN npm install
 
-ENTRYPOINT ["/backuponepass/entrypoint.sh"]
+ENTRYPOINT ["/bitwardensync/entrypoint.sh"]
