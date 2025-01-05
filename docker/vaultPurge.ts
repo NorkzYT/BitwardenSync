@@ -129,10 +129,9 @@ dotenv.config();
     console.log("Typed the master password for confirmation.");
 
     // Click the final Purge Vault confirmation button
-    await page.waitForSelector(
-      "form .modal-footer .btn.btn-danger.btn-submit",
-      { visible: true, timeout: 60000 }
-    );
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
     await page.evaluate(() => {
       const confirmPurgeButton = document.querySelector(
         "form .modal-footer .btn.btn-danger.btn-submit"

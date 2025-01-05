@@ -5,6 +5,8 @@ services:
     container_name: bitwardensync
     hostname: bitwardensync
     environment:
+      - UID=${UID}
+      - GID=${GID}
       - BITWARDEN_SYNC_HOST=${BITWARDEN_SYNC_HOST:?error}
       - BITWARDEN_SYNC_BW_EMAIL_ADDRESS=${BITWARDEN_SYNC_BW_EMAIL_ADDRESS:?error}
       - BITWARDEN_SYNC_BW_PASSWORD=${BITWARDEN_SYNC_BW_PASSWORD:?error}
@@ -12,14 +14,15 @@ services:
       - BITWARDEN_SYNC_BW_CLIENTSECRET=${BITWARDEN_SYNC_BW_CLIENTSECRET:?error}
       - BITWARDEN_SYNC_IMPORT_FORMAT=${BITWARDEN_SYNC_IMPORT_FORMAT:?error}
       - BITWARDEN_SYNC_BW_OTP_CODE=${BITWARDEN_SYNC_BW_OTP_CODE:?error} # Optional
+      - BITWARDEN_SYNC_IMPORT_LATEST_ONLY=true
     volumes:
       - ./docker/data:/bitwardensync/data # Password Manager Data Input
       - ./docker/config:/root/.config/Bitwarden CLI # Where data.json file is created.
     restart: on-failure
     networks:
-      - proxy
+      - owlith
 
 networks:
-  proxy:
+  owlith:
     driver: bridge
     external: true

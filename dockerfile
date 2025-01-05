@@ -23,7 +23,7 @@ RUN apt-get update && \
     fonts-freefont-ttf \
     libxss1 \
     --no-install-recommends && \
-    npm install -g @bitwarden/cli && \
+    npm install -g @bitwarden/cli@2024.12.0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

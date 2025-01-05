@@ -7,8 +7,13 @@ set -e
 echo ""
 echo "Starting BitwardenSync tool."
 
+# Run vaultPurge.ts first
+#npx ts-node /bitwardensync/vaultPurge.ts || { echo "Vault purge failed. Exiting."; exit 1; }
+echo "Vault purge completed."
+
 # Connect the CLI to the Bitwarden server using an environment variable
 echo "Setting server configuration to $BITWARDEN_SYNC_HOST."
+bw logout || true # Log out if logged in, ignore errors if not logged in
 bw config server "$BITWARDEN_SYNC_HOST"
 echo ""
 
@@ -16,40 +21,73 @@ echo ""
 export BW_CLIENTID=$BITWARDEN_SYNC_BW_CLIENTID
 export BW_CLIENTSECRET=$BITWARDEN_SYNC_BW_CLIENTSECRET
 
+# Set the password secret as environment variables
+export BW_PASSWORD=$BITWARDEN_SYNC_BW_PASSWORD
+
+# Retry configuration
+RETRY_LIMIT=5
+RETRY_INTERVAL=10
+retry_count=0
+
+# Function to handle retries
+retry_command() {
+  local cmd="$1"
+  local success=1
+  local retry_count=0
+  while [ $retry_count -lt $RETRY_LIMIT ]; do
+    if eval "$cmd"; then
+      success=0
+      break
+    else
+      echo "Retrying in $RETRY_INTERVAL seconds... ($((retry_count+1))/$RETRY_LIMIT)"
+      sleep $RETRY_INTERVAL
+      retry_count=$((retry_count+1))
+    fi
+  done
+
+  if [ $success -ne 0 ]; then
+    echo "Error: Command failed after $RETRY_LIMIT attempts. Exiting."
+    exit 1
+  fi
+}
+
 # Log in to Bitwarden using the API key, if not already logged in
-if ! bw login --check; then
-    echo "Logging into Bitwarden."
-    bw login --apikey
-else
-    echo ""
-    echo "Already logged into Bitwarden."
-fi
+echo "Logging into Bitwarden."
+BW_CLIENTID=$BW_CLIENTID BW_CLIENTSECRET=$BW_CLIENTSECRET retry_command "bw login --apikey"
 
 # Unlock the account and store the session key in a variable
-session_key=$(bw unlock --raw --passwordenv BITWARDEN_SYNC_BW_PASSWORD)
+printf "\n"
+echo "Unlocking Bitwarden vault."
+session_key=$(BW_PASSWORD=$BW_PASSWORD bw unlock --raw --passwordenv BW_PASSWORD 2>/dev/null)
+if [ -z "$session_key" ]; then
+    echo "Error: Failed to unlock Bitwarden vault. Exiting."
+    exit 1
+fi
 echo ""
 echo "Unlocked Bitwarden vault."
+export BW_SESSION="$session_key"
 
 # Get the value of the BITWARDEN_SYNC_IMPORT_FORMAT environment variable
 import_format=$BITWARDEN_SYNC_IMPORT_FORMAT
 
-# Get the list of supported import formats using the unlocked session
-supported_formats=$(bw import --formats --session "$session_key" | tail -n +2)
+# Fetch the list of supported import formats from the source URL
+import_options_url="https://raw.githubusercontent.com/bitwarden/clients/34a766f346d829a15e348038a12c0c1aefb17457/libs/importer/src/models/import-options.ts"
+supported_formats=$(curl -s $import_options_url | grep -oP '(?<="id": ")[^"]+')
+
+echo "Supported formats fetched from the source:"
+echo "$supported_formats"
+echo ""
 
 # Check if the import format is supported
 if ! echo "$supported_formats" | grep -q "^$import_format$"; then
     echo "Error: Unsupported import format '$import_format'."
     echo "Please provide a valid format from the following list:"
-    echo "https://github.com/bitwarden/clients/blob/34a766f346d829a15e348038a12c0c1aefb17457/libs/importer/src/models/import-options.ts#L6"
+    echo "$import_options_url"
     exit 1
 fi
 
 # Wait 1 second
 sleep 1
-
-echo "--------------------------------"
-
-npx ts-node /bitwardensync/vaultPurge.ts
 
 echo "--------------------------------"
 
@@ -62,20 +100,37 @@ if [ ! -d "$import_dir" ]; then
     exit 1
 fi
 
-# Find and import files from the /bitwardensync/data directory
-files=$(find "$import_dir" -type f)
+# Check if only the latest file should be imported
+if [ "$BITWARDEN_SYNC_IMPORT_LATEST_ONLY" = "true" ]; then
+    # Find the latest file based on modification time
+    file=$(find "$import_dir" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
 
-if [ -n "$files" ]; then
-    for file in $files; do
-        echo "Importing $file as $import_format."
-        bw import "$import_format" "$file" --session "$session_key"
+    if [ -n "$file" ]; then
+        echo "Importing latest file: $file as $import_format."
+        bw import "$import_format" "$file" --session "$BW_SESSION"
         echo ""
         echo "Removing $file after import."
         rm -f "$file"
-    done
+    else
+        echo "No files found in '$import_dir'."
+        exit 1
+    fi
 else
-    echo "No files found in '$import_dir'."
-    exit 1
+    # Import all files if not restricted to the latest
+    files=$(find "$import_dir" -type f)
+
+    if [ -n "$files" ]; then
+        for file in $files; do
+            echo "Importing $file as $import_format."
+            bw import "$import_format" "$file" --session "$BW_SESSION"
+            echo ""
+            echo "Removing $file after import."
+            rm -f "$file"
+        done
+    else
+        echo "No files found in '$import_dir'."
+        exit 1
+    fi
 fi
 
 # Wait 1 second
@@ -86,3 +141,6 @@ echo "Logging out of Bitwarden."
 bw logout
 echo ""
 echo "Task completed."
+
+# Prevent further looping by exiting the script
+exit 0
