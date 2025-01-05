@@ -16,7 +16,6 @@ services:
       - BITWARDEN_SYNC_IMPORT_LATEST_ONLY=true
     volumes:
       - /opt/appdata/bitwardensync/data:/bitwardensync/data # Password Manager Data Input
-      - /opt/appdata/bitwardensync/data/docker/config:/root/.config/Bitwarden CLI # Where data.json file is created.
     restart: on-failure
     networks:
       - proxy
