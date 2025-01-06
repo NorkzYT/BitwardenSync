@@ -22,7 +22,8 @@
 			"matchCurrentVersion": "!/^0/",
 			"labels": ["minor", "dependencies", "renovate"],
 			"internalChecksFilter": "strict",
-			"minimumReleaseAge": "3 days"
+			"minimumReleaseAge": "3 days",
+			"automerge": true
 		}
 	]
 }
