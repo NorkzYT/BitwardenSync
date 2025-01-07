@@ -1,6 +1,6 @@
 services:
   bitwardensync:
-    image: norkz/bitwardensync:1.0.0
+    image: norkz/bitwardensync:1.0.1
     container_name: bitwardensync
     hostname: bitwardensync
     environment:
@@ -13,7 +13,6 @@ services:
       - BITWARDEN_SYNC_BW_CLIENTSECRET=${BITWARDEN_SYNC_BW_CLIENTSECRET:?error}
       - BITWARDEN_SYNC_IMPORT_FORMAT=${BITWARDEN_SYNC_IMPORT_FORMAT:?error}
       - BITWARDEN_SYNC_BW_OTP_CODE=${BITWARDEN_SYNC_BW_OTP_CODE:?error} # Optional
-      - BITWARDEN_SYNC_IMPORT_LATEST_ONLY=true
     volumes:
       - /opt/appdata/bitwardensync/data:/bitwardensync/data # Password Manager Data Input
     restart: on-failure

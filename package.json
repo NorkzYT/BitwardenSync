@@ -1,7 +1,7 @@
 {
 	"name": "bitwardensync",
 	"description": "Automatically Sync your Password Managers Data to Bitwarden.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"author": "NorkzYT",
 	"private": false,
 	"scripts": {

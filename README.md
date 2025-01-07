@@ -42,15 +42,33 @@ BitwardenSync is a docker service that will automatically Sync your Password Man
 
 ## Usage
 
-### Regular Backups with Cron
+### Running the Service
 
-BitwardenSync can be integrated into your existing backup schedule using Cron. Here is an example to run backups every Friday at 22:00:
+To start the BitwardenSync service, use the following command:
+  ```
+  docker-compose up -d --force-recreate
+  ```
+### Workflow with BackupOnePass Tool
 
-```bash
-echo "0 22 * * 5 /opt/BitwardenSync/backup_schedule_example.sh >> /var/log/backup_schedule_example.log 2>&1" | crontab -
-```
+1. Configure the BackupOnePass tool to export data into the directory:
+  ```
+  /opt/appdata/bitwardensync/data
+  ```
+2. Once the data file is placed in the above directory, BitwardenSync automatically:
 
-Refer to the provided [example script](./backup_schedule_example.sh) for a template on setting up scheduled backups for BitwardenSync.
+- Detects the new file (folder watch enabled).
+
+- Purges the existing vault data.
+
+- Imports the new data file into the vault.
+
+- Deletes the imported file to maintain a clean directory.
+
+3. The process repeats each time new data is exported into the directory.
+
+### Standalone Usage
+
+BitwardenSync can also be used independently without BackupOnePass. Simply ensure the input file is placed in the directory mentioned above, and it will process the data automatically as described.
 
 ## Contributing
 
