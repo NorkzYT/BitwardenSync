@@ -109,7 +109,6 @@ Created by NorkzYT with 💛
   - [backup_schedule_example.sh](./backup_schedule_example.sh)
   - [commitlint.config.cjs](./commitlint.config.cjs)
   - [**docker**](./docker)
-    - [**config**](./docker/config)
     - [**data**](./docker/data)
     - [entrypoint.sh](./docker/entrypoint.sh)
     - [vaultPurge.ts](./docker/vaultPurge.ts)

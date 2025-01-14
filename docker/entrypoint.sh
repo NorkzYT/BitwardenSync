@@ -18,23 +18,36 @@ purge_vault() {
 wait_for_file_upload() {
     local file="$1"
     local prev_size=0
-    local curr_size=$(stat --format="%s" "$file") # Get initial file size
+    local curr_size=0
+    local no_change_count=0
 
     echo "Waiting for file '$file' to finish uploading..."
 
-    # Wait until the file size stops changing
     while true; do
-        sleep 10  # Wait for 10 seconds
-        prev_size=$curr_size
-        curr_size=$(stat --format="%s" "$file") # Check file size again
+        if [ ! -e "$file" ]; then
+            echo "Error: File '$file' no longer exists. Exiting."
+            return 1
+        fi
+
+        curr_size=$(stat --format="%s" "$file" 2>/dev/null || echo 0)
 
         # Log the sizes for debugging
         echo "Checking file size... Previous: $prev_size bytes, Current: $curr_size bytes"
 
-        # If the size hasn't changed, assume upload is complete
-        if [ "$prev_size" -eq "$curr_size" ]; then
-            echo "File '$file' has finished uploading."
-            break
+        if [ "$curr_size" -ne "$prev_size" ]; then
+            # File size changed; reset the no-change counter and wait longer
+            no_change_count=0
+            prev_size=$curr_size
+            sleep 15  # Wait longer since the file is still growing
+        else
+            # File size hasn't changed
+            ((no_change_count++))
+            if [ "$no_change_count" -ge 2 ]; then
+                # No change for two checks (15 + 15 seconds); assume file upload is complete
+                echo "File '$file' has finished uploading."
+                break
+            fi
+            sleep 5  # Wait shorter since the file seems stable
         fi
     done
 }
@@ -69,50 +82,52 @@ if ! echo "$supported_formats" | grep -q "^$import_format$"; then
 fi
 
 while true; do
-    # Find the latest file in the directory
-    file=$(find "$WATCH_DIR" -type f | head -n 1)
+    # Find the latest file in the directory (ignore incomplete/hidden files)
+    file=$(find "$WATCH_DIR" -type f ! -name ".*" | head -n 1)
 
     if [ -n "$file" ]; then
         echo "Detected new file: $file"
 
         # Wait until the file size stabilizes
-        wait_for_file_upload "$file"
+        if wait_for_file_upload "$file"; then
+            # Perform Bitwarden login and vault preparation
+            echo "Setting Bitwarden server configuration to $BITWARDEN_SYNC_HOST."
+            bw config server "$BITWARDEN_SYNC_HOST"
 
-        # Perform Bitwarden login and vault preparation
-        echo "Setting Bitwarden server configuration to $BITWARDEN_SYNC_HOST."
-        bw config server "$BITWARDEN_SYNC_HOST"
+            # Set environment variables for Bitwarden login
+            export BW_CLIENTID=$BITWARDEN_SYNC_BW_CLIENTID
+            export BW_CLIENTSECRET=$BITWARDEN_SYNC_BW_CLIENTSECRET
 
-        # Set environment variables for Bitwarden login
-        export BW_CLIENTID=$BITWARDEN_SYNC_BW_CLIENTID
-        export BW_CLIENTSECRET=$BITWARDEN_SYNC_BW_CLIENTSECRET
+            # Log in to Bitwarden using the API key
+            echo "Logging into Bitwarden."
+            bw login --apikey
 
-        # Log in to Bitwarden using the API key
-        echo "Logging into Bitwarden."
-        bw login --apikey
+            # Sync Bitwarden vault
+            echo "Synchronizing Bitwarden data."
+            bw sync
 
-        # Sync Bitwarden vault
-        echo "Synchronizing Bitwarden data."
-        bw sync
+            # Unlock vault and save session key
+            session_key=$(bw unlock --raw --passwordenv BITWARDEN_SYNC_BW_PASSWORD)
+            echo "Unlocked Bitwarden vault."
 
-        # Unlock vault and save session key
-        session_key=$(bw unlock --raw --passwordenv BITWARDEN_SYNC_BW_PASSWORD)
-        echo "Unlocked Bitwarden vault."
+            # Purge vault before importing the file
+            purge_vault
 
-        # Purge vault before importing the file
-        purge_vault
+            # Import the detected file
+            echo "Importing file: $file as $import_format."
+            bw import "$import_format" "$file" --session "$session_key"
 
-        # Import the detected file
-        echo "Importing file: $file as $import_format."
-        bw import "$import_format" "$file" --session "$session_key"
+            # Remove the imported file
+            echo "Removing $file after import."
+            rm -f "$file"
+            echo "File imported and removed successfully."
 
-        # Remove the imported file
-        echo "Removing $file after import."
-        rm -f "$file"
-        echo "File imported and removed successfully."
-
-        # Log out after processing the file
-        echo "Logging out of Bitwarden."
-        bw logout
+            # Log out after processing the file
+            echo "Logging out of Bitwarden."
+            bw logout
+        else
+            echo "Skipping file '$file' due to upload issues."
+        fi
     else
         echo "No files detected. Waiting for new files..."
     fi
