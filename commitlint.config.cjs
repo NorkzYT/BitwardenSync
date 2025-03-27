@@ -17,13 +17,13 @@ module.exports = {
 		'scope-max-length': [2, 'always', Infinity],
 		'scope-min-length': [2, 'always', 0],
 
-		'subject-empty': [2, 'never'],
+		'subject-empty': [2, 'always'],
 		'subject-full-stop': [2, 'never', '.'],
 		'subject-max-length': [2, 'always', 72],
 		'subject-min-length': [2, 'always', 0],
 
 		'type-case': [2, 'always', 'lower-case'],
-		'type-empty': [2, 'never'],
+		'type-empty': [2, 'always'],
 		'type-enum': [
 			2,
 			'always',
