@@ -7,8 +7,9 @@ import { writeFileSync } from 'fs';
 dotenv.config();
 
 (async () => {
-  const browser = await puppeteer.connect({
-    browserURL: 'http://localhost:9222',
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox'],
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
@@ -92,7 +93,7 @@ dotenv.config();
     await page.goto(settingsUrl, { waitUntil: 'networkidle2', timeout: 60000 });
     console.log('Navigated to settings page.');
 
-    const purgeButtonSelector = "button.\\!tw-text-danger:nth-child(3)";
+    const purgeButtonSelector = 'button.\\!tw-text-danger:nth-child(3)';
 
     try {
       const purgeButton = await page.waitForSelector(purgeButtonSelector, {
