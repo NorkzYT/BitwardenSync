@@ -7,9 +7,8 @@ import { writeFileSync } from 'fs';
 dotenv.config();
 
 (async () => {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox'],
+  const browser = await puppeteer.connect({
+    browserURL: 'http://localhost:9222',
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
@@ -35,7 +34,7 @@ dotenv.config();
     console.log('Page loaded.');
 
     // Type in email
-    await page.click('input#login_input_email');
+    await page.click('input#bit-input-0');
     await page.keyboard.type(email, { delay: 10 });
     console.log('Email entered.');
 
@@ -51,7 +50,7 @@ dotenv.config();
     console.log('Clicked Continue button after email.');
 
     // Type in password
-    await page.click('input#login_input_master-password');
+    await page.click('input#bit-input-1');
     await page.keyboard.type(password, { delay: 10 });
     console.log('Password entered.');
 
@@ -67,7 +66,7 @@ dotenv.config();
     console.log('Navigation after Log In.');
 
     // Handle potential 2FA step
-    const twoFactorInputSelector = 'input#code';
+    const twoFactorInputSelector = 'input#bit-input-2';
 
     if (await page.$(twoFactorInputSelector)) {
       console.log('Two-factor authentication step detected');
@@ -93,35 +92,27 @@ dotenv.config();
     await page.goto(settingsUrl, { waitUntil: 'networkidle2', timeout: 60000 });
     console.log('Navigated to settings page.');
 
+    const purgeButtonSelector = "button.\\!tw-text-danger:nth-child(3)";
+
     try {
-      const buttonClicked: boolean = await page.evaluate(() => {
-        const findPurgeButton = (): HTMLButtonElement | undefined => {
-          const buttons = Array.from(
-            document.querySelectorAll("button[type='button']")
-          );
-          return buttons.find((button) =>
-            button.textContent?.trim().includes('Purge vault')
-          ) as HTMLButtonElement | undefined;
-        };
-
-        const purgeButton = findPurgeButton();
-
-        if (purgeButton) {
-          purgeButton.scrollIntoView();
-          (purgeButton as HTMLElement).click();
-          return true;
-        } else {
-          return false;
-        }
+      const purgeButton = await page.waitForSelector(purgeButtonSelector, {
+        visible: true,
+        timeout: 10000,
       });
 
-      if (buttonClicked) {
-        console.log('Clicked the "Purge vault" button.');
-      } else {
+      if (!purgeButton) {
         throw new Error('Purge vault button not found.');
       }
+
+      await purgeButton.evaluate((button) => {
+        button.scrollIntoView({ block: 'center' });
+        (button as HTMLElement).click();
+      });
+
+      console.log('Clicked the "Purge vault" button.');
     } catch (error) {
-      console.error(`An error occurred: ${error}`);
+      console.error(`An error occurred clicking the purge button: ${error}`);
+      throw error;
     }
 
     // Wait for 2 seconds before typing the password
@@ -152,12 +143,12 @@ dotenv.config();
     console.error('An error occurred:', error);
 
     // Take a screenshot if an error occurs
-    const screenshotPath = join('/bitwardensync/data', 'error_screenshot.png');
+    const screenshotPath = join('./data', 'error_screenshot.png');
     await page.screenshot({ path: screenshotPath });
     console.log(`Screenshot saved at ${screenshotPath}`);
 
     // Save the error message to a file
-    const errorMessagePath = join('/bitwardensync/data', 'error_message.txt');
+    const errorMessagePath = join('./data', 'error_message.txt');
 
     // Check the type of error and handle accordingly
     if (error instanceof Error) {
