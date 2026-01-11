@@ -1,7 +1,55 @@
 #!/bin/bash
 
 # Exit immediately on SIGINT or SIGTERM signals
-trap "echo 'Logging out of Bitwarden.'; bw logout; exit 0" SIGINT SIGTERM
+cleanup() {
+    echo 'Logging out of Bitwarden.'
+    bw logout 2>/dev/null || true
+    # Kill Xvfb if running
+    if [ -n "$XVFB_PID" ]; then
+        kill $XVFB_PID 2>/dev/null || true
+    fi
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+# Start Xvfb (X Virtual Framebuffer) for visual automation
+start_xvfb() {
+    export DISPLAY=:99
+
+    # Clean up stale lock files from previous runs
+    if [ -f /tmp/.X99-lock ]; then
+        echo "Cleaning up stale X lock file..."
+        rm -f /tmp/.X99-lock
+    fi
+    if [ -e /tmp/.X11-unix/X99 ]; then
+        rm -f /tmp/.X11-unix/X99
+    fi
+
+    # Check if Xvfb is already running
+    if pgrep -x Xvfb > /dev/null; then
+        echo "Xvfb is already running"
+        XVFB_PID=$(pgrep -x Xvfb | head -1)
+    else
+        echo "Starting Xvfb on display :99..."
+        Xvfb :99 -screen 0 1920x1080x24 -ac &
+        XVFB_PID=$!
+        sleep 2
+    fi
+
+    # Setup xauth
+    xauth generate :99 . trusted 2>/dev/null || true
+
+    # Check if openbox is already running
+    if ! pgrep -x openbox > /dev/null; then
+        echo "Starting openbox window manager..."
+        openbox &
+        sleep 1
+    fi
+
+    echo "X11 virtual display ready on $DISPLAY"
+}
+
+start_xvfb
 
 # Watch directory for files
 WATCH_DIR="/bitwardensync/data"

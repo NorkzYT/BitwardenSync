@@ -66,6 +66,8 @@ To start the BitwardenSync service, use the following command:
 
 3. The process repeats each time new data is exported into the directory.
 
+> **Note:** SSH keys in Ed25519 format are not supported by Bitwarden. Attempting to use them will result in the error: `Failed to execute 'encrypt' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView)'`. For more information, see the [Bitwarden SSH Agent documentation](https://bitwarden.com/help/ssh-agent/).
+
 ### Standalone Usage
 
 BitwardenSync can also be used independently without BitwardenSync. Simply ensure the input file is placed in the directory mentioned above, and it will process the data automatically as described.

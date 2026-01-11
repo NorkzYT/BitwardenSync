@@ -1,4 +1,4 @@
-FROM vaultwarden/server:latest
+FROM vaultwarden/server:1.35.2
 
 LABEL maintainer="NorkzYT richard@pcscorp.dev"
 
@@ -19,17 +19,21 @@ RUN apt-get update && \
     fonts-ipafont-gothic \
     fonts-wqy-zenhei \
     fonts-thai-tlwg \
-    fonts-kacst \
     fonts-freefont-ttf \
     libxss1 \
+    # X11 virtual framebuffer (needed for Puppeteer headless:false)
+    xvfb \
+    x11-xserver-utils \
+    xauth \
     --no-install-recommends && \
-    npm install -g @bitwarden/cli@2024.12.0 && \
+    npm install -g @bitwarden/cli@2025.12.0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for Puppeteer
+# Set environment variables for Puppeteer and X11
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+ENV DISPLAY :99
 
 # Copy necessary files
 COPY docker/entrypoint.sh /bitwardensync/entrypoint.sh
