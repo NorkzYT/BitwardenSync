@@ -72,6 +72,10 @@ To start the BitwardenSync service, use the following command:
 
 BitwardenSync can also be used independently without BitwardenSync. Simply ensure the input file is placed in the directory mentioned above, and it will process the data automatically as described.
 
+## Contributors
+
+We're happy to welcome [@Breadfishman](https://github.com/Breadfishman)'s contributions to our work this project. They collaborated closely on the project under our shared account.
+
 ## Contributing
 
 Please see the [contributing guide](./CONTRIBUTING.md)
