@@ -1,31 +1,33 @@
 {
-	"name": "bitwardensync",
-	"description": "Automatically Sync your Password Managers Data to Bitwarden.",
-	"version": "1.0.5",
-	"author": "NorkzYT",
-	"private": false,
-	"scripts": {
-		"clean:install": "rm -rf node_modules/ && rm -rf package-lock.json && npm i",
-		"prettier:check": "prettier --check .",
-		"prettier:format": "prettier --write .",
-		"repoTree": "python3 repoTree.py",
-		"prepare": "husky"
-	},
-	"devDependencies": {
-		"@commitlint/cli": "^19.8.1",
-		"@commitlint/config-conventional": "^19.8.1",
-		"@types/node": "^22.18.7",
-		"husky": "^9.1.7",
-		"opencommit": "^3.2.10"
-	},
-	"engines": {
-		"npm": ">=7.10.0",
-		"node": ">=16.0.0"
-	},
-	"dependencies": {
-		"dotenv": "^16.6.1",
-		"otplib": "^12.0.1",
-		"puppeteer": "^23.11.1",
-		"ts-node": "^10.9.2"
-	}
+  "name": "bitwardensync",
+  "description": "Automatically Sync your Password Managers Data to Bitwarden.",
+  "version": "2.0.0",
+  "author": "NorkzYT",
+  "private": false,
+  "scripts": {
+    "build": "tsc -p docker/tsconfig.json",
+    "typecheck": "tsc -p docker/tsconfig.json --noEmit",
+    "test": "tsx --test docker/tests/*.test.ts",
+    "test:e2e": "bash tests/e2e/run.sh",
+    "clean:install": "rm -rf node_modules/ && rm -rf package-lock.json && npm i",
+    "prettier:check": "prettier --check .",
+    "prettier:format": "prettier --write .",
+    "repoTree": "python3 repoTree.py",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^22.18.7",
+    "hash-wasm": "^4.12.0",
+    "husky": "^9.1.7",
+    "opencommit": "^3.2.10",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "npm": ">=9.0.0",
+    "node": ">=20.0.0"
+  }
 }
