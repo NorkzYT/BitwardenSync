@@ -35,6 +35,14 @@ yarn-error.log*
 # Data folder
 /docker/data/*
 
+# Compiled vault tool
+/docker/dist
+/docker/node_modules
+
+# Local log dumps
+bitwardensync-all-logs.txt
+*.log
+
 # Bitwarden CLI data file
 /docker/config/*
 
