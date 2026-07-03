@@ -15,7 +15,7 @@ You will need to install and configure the following dependencies on your linux 
 - [Git](http://git-scm.com/)
 - [Node.js v18.x (LTS)](http://nodejs.org)
 - [Docker & Docker Compose](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) latest
-- [python](https://www.python.org/downloads/) latest 
+- [python](https://www.python.org/downloads/) latest
 - [npm](https://www.npmjs.com/) latest
 - [Bun](https://bun.sh/) latest (Install with `npm install -g bun`)
 - [GNU Make](https://www.gnu.org/software/make/) latest (Install with `sudo apt-get install make -y`).
@@ -55,7 +55,6 @@ To contribute code, you must fork the [BitwardenSync repo](https://github.com/No
    ```sh
    make run # Sets up and runs docker service
    ```
-
 
 ## Create a pull request
 
